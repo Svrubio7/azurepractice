@@ -1,58 +1,47 @@
-name: Build and Deploy Infrastructure
+name: Validate and Deploy Infrastructure to DEV
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
 
-jobs:
-  build:
-    name: Validate and Build Bicep Files
-    runs-on: ubuntu-latest
+env:
+  RESOURCE_GROUP_DEV: BCSAI2024-DEVOPS-STUDENTS-B-DEV
+  SUBSCRIPTION_ID: e0b9cada-61bc-4b5a-bd7a-52c606726b3b
 
+jobs:
+  validate_and_deploy:
+    name: Validate and Deploy to DEV
+    runs-on: ubuntu-latest
     steps:
-    # Checkout the code from the repository
-    - name: Checkout Code
+    - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # Install Azure CLI and Bicep CLI
     - name: Install Azure CLI and Bicep
       run: |
         curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
         az bicep install
 
-    # Validate the Bicep files
-    - name: Validate Bicep Templates
-      run: |
-        az bicep build --file main.bicep --stdout
-
-  deploy:
-    name: Deploy Infrastructure
-    needs: build
-    runs-on: ubuntu-latest
-
-    env:
-      RESOURCE_GROUP: my-resource-group
-      PARAMETERS_FILE: main.parameters.json
-
-    steps:
-    # Checkout the code from the repository
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    # Login to Azure
     - name: Login to Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    # Deploy the Bicep file
-    - name: Deploy Bicep File
-      uses: azure/CLI@v1
+    - name: Validate Bicep Template
+      uses: azure/arm-deploy@v1
       with:
-        inlineScript: |
-          az deployment group create \
-            --resource-group $RESOURCE_GROUP \
-            --name main-$(date +%s) \
-            --template-file main.bicep \
-            --parameters @$PARAMETERS_FILE
+        subscriptionId: ${{ env.SUBSCRIPTION_ID }}
+        scope: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_DEV }}
+        template: ./main.bicep
+        parameters: ./parameters/dev.parameters.json
+        deploymentMode: Validate
+
+    - name: Deploy Bicep Template
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ env.SUBSCRIPTION_ID }}
+        scope: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_DEV }}
+        template: ./main.bicep
+        parameters: ./parameters/dev.parameters.json
+        deploymentMode: Incremental
