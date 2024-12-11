@@ -1,20 +1,24 @@
-@description('Deploys an Azure Service Plan for Linux.')
-param name string
+@description('Deployment location for the resource group')
 param location string = resourceGroup().location
 
-resource servicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
-  name: name
+@description('The name of the App Service Plan for hosting the application')
+param appServicePlanName string
+
+@description('The SKU for the App Service Plan (Basic Linux SKU)')
+param skuName string = 'B1'
+
+resource appServicePlan 'Microsoft.Web/serverFarms@2022-03-01' = {
+  name: appServicePlanName
   location: location
   sku: {
-    name: 'B1'
+    name: skuName
     tier: 'Basic'
-    size: 'B1'
-    family: 'B'
     capacity: 1
   }
+  kind: 'linux'
   properties: {
-    reserved: true // Indicates Linux hosting
+    reserved: true
   }
 }
 
-output id string = servicePlan.id
+output id string = appServicePlan.id

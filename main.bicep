@@ -1,74 +1,59 @@
-@description('Location for all resources')
+@description('Resource group location')
 param location string = resourceGroup().location
 
 @description('Name of the Azure Container Registry')
 param containerRegistryName string
 
-@description('Name of the Azure Service Plan')
+@description('Name of the App Service Plan')
 param appServicePlanName string
 
-@description('Name of the Azure Web App')
+@description('Name of the Web App')
 param webAppName string
 
-@description('Name of the Azure Key Vault')
-param keyVaultName string
+@description('The SKU for the App Service Plan')
+param skuName string = 'B1'
 
-@description('Docker image name')
+@description('The full image name including tag (e.g., myregistry.azurecr.io/app:latest)')
 param dockerImageName string
 
-@description('Docker image version')
-param dockerImageVersion string = 'latest'
+@description('The URL of the Azure Container Registry')
+param dockerRegistryServerUrl string
+
+@description('The username for the Azure Container Registry')
+param dockerRegistryServerUserName string
+
+@description('The password for the Azure Container Registry')
+param dockerRegistryServerPassword string
 
 // Deploy Azure Container Registry
 module containerRegistry './modules/containerRegistry.bicep' = {
   name: 'deployContainerRegistry'
   params: {
-    name: containerRegistryName
+    registryName: containerRegistryName
     location: location
   }
 }
 
-resource containerRegistryResource 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
-  name: containerRegistryName
-}
-
-// Deploy Azure Service Plan
+// Deploy App Service Plan
 module servicePlan './modules/servicePlan.bicep' = {
   name: 'deployServicePlan'
   params: {
-    name: appServicePlanName
+    appServicePlanName: appServicePlanName
     location: location
+    skuName: skuName
   }
 }
 
-// Deploy Azure Key Vault and store ACR credentials
-module keyVault './modules/keyVault.bicep' = {
-  name: 'deployKeyVault'
-  params: {
-    name: keyVaultName
-    location: location
-    acrUsername: containerRegistryResource.listCredentials().username
-    acrPassword: containerRegistryResource.listCredentials().passwords[0].value
-  }
-}
-
-// Deploy Azure Web App for Linux containers
+// Deploy Web App
 module webApp './modules/webApp.bicep' = {
   name: 'deployWebApp'
   params: {
-    name: webAppName
+    webAppName: webAppName
     location: location
     appServicePlanId: servicePlan.outputs.id
-    dockerRegistryUrl: 'https://${containerRegistryName}.azurecr.io'
-    dockerRegistryUsername: containerRegistryResource.listCredentials().username
-    dockerRegistryPassword: containerRegistryResource.listCredentials().passwords[0].value
+    dockerRegistryServerUrl: dockerRegistryServerUrl
+    dockerRegistryServerUserName: dockerRegistryServerUserName
+    dockerRegistryServerPassword: dockerRegistryServerPassword
     dockerImageName: dockerImageName
-    dockerImageVersion: dockerImageVersion
   }
 }
-
-// Outputs for verification
-output containerRegistryId string = containerRegistry.outputs.id
-output servicePlanId string = servicePlan.outputs.id
-output keyVaultId string = keyVault.outputs.id
-output webAppName string = webAppName

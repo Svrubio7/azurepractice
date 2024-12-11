@@ -1,22 +1,32 @@
-@description('Deploys an Azure Web App for Linux Containers.')
-param name string
+@description('Deployment location for the resource group')
 param location string = resourceGroup().location
+
+@description('The name of the Web App')
+param webAppName string
+
+@description('The name of the App Service Plan')
 param appServicePlanId string
-param dockerRegistryUrl string
-@secure()
-param dockerRegistryUsername string
-@secure()
-param dockerRegistryPassword string
+
+@description('The URL of the Azure Container Registry')
+param dockerRegistryServerUrl string
+
+@description('The username for the Azure Container Registry')
+param dockerRegistryServerUserName string
+
+@description('The password for the Azure Container Registry')
+param dockerRegistryServerPassword string
+
+@description('The full image name including tag (e.g., myregistry.azurecr.io/app:latest)')
 param dockerImageName string
-param dockerImageVersion string = 'latest'
 
 resource webApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: name
+  name: webAppName
   location: location
+  kind: 'app'
   properties: {
     serverFarmId: appServicePlanId
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${dockerRegistryUrl}/${dockerImageName}:${dockerImageVersion}'
+      linuxFxVersion: 'DOCKER|${dockerImageName}'
       appCommandLine: ''
       appSettings: [
         {
@@ -25,17 +35,19 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: dockerRegistryUrl
+          value: dockerRegistryServerUrl
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: dockerRegistryUsername
+          value: dockerRegistryServerUserName
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: dockerRegistryPassword
+          value: dockerRegistryServerPassword
         }
       ]
     }
   }
 }
+
+output id string = webApp.id
