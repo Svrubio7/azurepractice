@@ -1,4 +1,4 @@
-name: Deploy Infrastructure
+name: Build and Deploy Infrastructure
 
 on:
   push:
@@ -6,12 +6,33 @@ on:
       - main
 
 jobs:
+  build:
+    name: Validate and Build Bicep Files
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the code from the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Install Azure CLI and Bicep CLI
+    - name: Install Azure CLI and Bicep
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+        az bicep install
+
+    # Validate the Bicep files
+    - name: Validate Bicep Templates
+      run: |
+        az bicep build --file main.bicep --stdout
+
   deploy:
-    name: Deploy Bicep Infrastructure
+    name: Deploy Infrastructure
+    needs: build
     runs-on: ubuntu-latest
 
     env:
-      RESOURCE_GROUP: BCSAI2024-DEVOPS-STUDENTS-B-DEV
+      RESOURCE_GROUP: my-resource-group
       PARAMETERS_FILE: main.parameters.json
 
     steps:
@@ -32,5 +53,6 @@ jobs:
         inlineScript: |
           az deployment group create \
             --resource-group $RESOURCE_GROUP \
+            --name main-$(date +%s) \
             --template-file main.bicep \
             --parameters @$PARAMETERS_FILE
