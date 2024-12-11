@@ -60,7 +60,8 @@ jobs:
       uses: azure/arm-deploy@v1
       with:
         subscriptionId: ${{ env.SUBSCRIPTION_ID }}
-        scope: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_DEV }}
+        scope: resourcegroup
+        resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./main.bicep
         parameters: ./parameters/dev.parameters.json
         deploymentMode: Validate
@@ -69,7 +70,8 @@ jobs:
       uses: azure/arm-deploy@v1
       with:
         subscriptionId: ${{ env.SUBSCRIPTION_ID }}
-        scope: /subscriptions/${{ env.SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP_DEV }}
+        scope: resourcegroup
+        resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./main.bicep
         parameters: ./parameters/dev.parameters.json
         deploymentMode: Incremental
