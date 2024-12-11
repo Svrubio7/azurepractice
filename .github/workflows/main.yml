@@ -1,0 +1,32 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Bicep Infrastructure
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the code from the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # Login to Azure
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Deploy the Bicep file
+    - name: Deploy Bicep File
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az deployment group create \
+            --resource-group <resource-group-name> \
+            --template-file main.bicep \
+            --parameters @main.parameters.json
