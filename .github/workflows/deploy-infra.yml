@@ -10,6 +10,10 @@ jobs:
     name: Deploy Bicep Infrastructure
     runs-on: ubuntu-latest
 
+    env:
+      RESOURCE_GROUP: BCSAI2024-DEVOPS-STUDENTS-B-DEV
+      PARAMETERS_FILE: main.parameters.json
+
     steps:
     # Checkout the code from the repository
     - name: Checkout Code
@@ -27,6 +31,6 @@ jobs:
       with:
         inlineScript: |
           az deployment group create \
-            --resource-group <resource-group-name> \
+            --resource-group $RESOURCE_GROUP \
             --template-file main.bicep \
-            --parameters @main.parameters.json
+            --parameters @$PARAMETERS_FILE
