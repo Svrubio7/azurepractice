@@ -63,7 +63,7 @@ jobs:
         scope: resourcegroup
         resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
         template: ./main.bicep
-        parameters: ./parameters/dev.parameters.json
+        parameters: ./main.parameters.json
         deploymentMode: Validate
 
     - name: Deploy Bicep Template
