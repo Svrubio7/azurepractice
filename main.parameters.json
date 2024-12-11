@@ -1,0 +1,10 @@
+{
+    "location": { "value": "eastus" },
+    "containerRegistryName": { "value": "myContainerRegistry" },
+    "appServicePlanName": { "value": "myServicePlan" },
+    "webAppName": { "value": "myWebApp" },
+    "keyVaultName": { "value": "myKeyVault" },
+    "dockerImageName": { "value": "myDockerImage" },
+    "dockerImageVersion": { "value": "latest" }
+  }
+  
